@@ -171,7 +171,7 @@ class AuditLog(Base):
     entity_type = Column(String(50), nullable=False)  # e.g., "package", "version", "installer"
     entity_id = Column(Integer, nullable=True)
     entity_identifier = Column(String(255), nullable=True)  # Package identifier for context
-    metadata = Column(JSON, nullable=True)  # Additional context
+    meta = Column("metadata", JSON, nullable=True)  # Additional context (renamed from 'metadata' to avoid SQLAlchemy reserved name)
     ip_address = Column(String(45), nullable=True)
     user_agent = Column(String(500), nullable=True)
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)

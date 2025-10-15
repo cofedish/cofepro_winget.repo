@@ -3,7 +3,7 @@ Pydantic schemas for request/response validation
 """
 from datetime import datetime
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field, EmailStr, field_validator
+from pydantic import BaseModel, Field, EmailStr, field_validator, ConfigDict
 
 from app.models import UserRole, InstallerType, Architecture, InstallerScope
 
@@ -38,7 +38,9 @@ class UserResponse(UserBase):
     created_at: datetime
     updated_at: datetime
 
-    model_config = {"from_attributes": True}
+    model_config = ConfigDict(
+        from_attributes=True
+    )
 
 
 # ==================== Auth Schemas ====================
@@ -337,17 +339,24 @@ class UploadFromUrlRequest(BaseModel):
 
 class AuditLogResponse(BaseModel):
     """Audit log response"""
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True
+    )
+
     id: int
     actor_username: str
     action: str
     entity_type: str
     entity_id: Optional[int]
     entity_identifier: Optional[str]
-    metadata: Optional[Dict[str, Any]]
+    metadata: Optional[Dict[str, Any]] = Field(
+        default=None,
+        validation_alias="meta",
+        serialization_alias="metadata"
+    )
     ip_address: Optional[str]
     timestamp: datetime
-
-    model_config = {"from_attributes": True}
 
 
 # ==================== Statistics Schemas ====================

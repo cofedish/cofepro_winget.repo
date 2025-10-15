@@ -78,12 +78,12 @@ services:
       echo 'Waiting for database...';
       sleep 10;
       echo 'Running database migrations...';
-      alembic upgrade head;
+      alembic upgrade head || exit 1;
       echo 'Starting backend server...';
       gunicorn app.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --timeout 300 --log-level info
       "
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -97,8 +97,8 @@ services:
       dockerfile: Dockerfile
     container_name: winget-repo-frontend-builder
     volumes:
-      - frontend_dist:/app/dist
-    command: sh -c "npm ci && npm run build && cp -r dist/* /app/dist/"
+      - frontend_dist:/out
+    command: sh -c "npm ci && npm run build && rm -rf /out/* && cp -r dist/* /out/"
 
   # Nginx Reverse Proxy
   nginx:

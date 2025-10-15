@@ -18,7 +18,7 @@ async def create_audit_log(
     entity_type: str,
     entity_id: Optional[int] = None,
     entity_identifier: Optional[str] = None,
-    metadata: Optional[Dict[str, Any]] = None,
+    meta: Optional[Dict[str, Any]] = None,
     request: Optional[Request] = None
 ) -> None:
     """
@@ -31,7 +31,7 @@ async def create_audit_log(
         entity_type: Entity type (package, version, installer, etc.)
         entity_id: Entity ID
         entity_identifier: Entity identifier (for packages)
-        metadata: Additional metadata
+        meta: Additional metadata
         request: FastAPI request object for IP/user-agent
     """
     ip_address = None
@@ -54,7 +54,7 @@ async def create_audit_log(
         entity_type=entity_type,
         entity_id=entity_id,
         entity_identifier=entity_identifier,
-        metadata=metadata,
+        meta=meta,
         ip_address=ip_address,
         user_agent=user_agent,
         timestamp=datetime.utcnow()

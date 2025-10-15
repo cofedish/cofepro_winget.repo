@@ -107,13 +107,13 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 # Health check endpoint
-@app.get("/health", tags=["Health"])
+@app.get("/health", tags=["Health"], status_code=200)
 async def health_check():
     """
     Health check endpoint
     """
     return {
-        "status": "healthy",
+        "status": "ok",
         "version": "1.0.0",
         "environment": settings.environment
     }

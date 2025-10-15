@@ -156,7 +156,7 @@ async def update_package(
         db, current_user, "update", "package",
         entity_id=package.id,
         entity_identifier=package.identifier,
-        metadata=update_data,
+        meta=update_data,
         request=request
     )
 
@@ -284,7 +284,7 @@ async def create_version(
         db, current_user, "create", "version",
         entity_id=version.id,
         entity_identifier=package.identifier,
-        metadata={"version": version.version},
+        meta={"version": version.version},
         request=request
     )
 
@@ -328,7 +328,7 @@ async def update_version(
         db, current_user, "update", "version",
         entity_id=version.id,
         entity_identifier=version.package.identifier,
-        metadata={"version": version.version, **update_data},
+        meta={"version": version.version, **update_data},
         request=request
     )
 
@@ -376,7 +376,7 @@ async def delete_version(
     await create_audit_log(
         db, current_user, "delete", "version",
         entity_identifier=package_identifier,
-        metadata={"version": version_str},
+        meta={"version": version_str},
         request=request
     )
 
@@ -445,7 +445,7 @@ async def update_installer(
         db, current_user, "update", "installer",
         entity_id=installer.id,
         entity_identifier=installer.version.package.identifier,
-        metadata=update_data,
+        meta=update_data,
         request=request
     )
 
@@ -494,7 +494,7 @@ async def delete_installer(
     await create_audit_log(
         db, current_user, "delete", "installer",
         entity_identifier=package_identifier,
-        metadata={"s3_key": s3_key},
+        meta={"s3_key": s3_key},
         request=request
     )
 
@@ -558,7 +558,7 @@ async def create_user(
     await create_audit_log(
         db, current_user, "create", "user",
         entity_id=user.id,
-        metadata={"username": user.username, "role": user.role.value},
+        meta={"username": user.username, "role": user.role.value},
         request=request
     )
 
@@ -601,7 +601,7 @@ async def update_user(
     await create_audit_log(
         db, current_user, "update", "user",
         entity_id=user.id,
-        metadata={"username": user.username},
+        meta={"username": user.username},
         request=request
     )
 

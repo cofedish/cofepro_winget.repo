@@ -119,7 +119,7 @@ async def upload_installer(
         db, current_user, "upload", "installer",
         entity_id=installer.id,
         entity_identifier=package.identifier,
-        metadata={
+        meta={
             "version": version.version,
             "filename": filename,
             "size": size_bytes,
@@ -244,7 +244,7 @@ async def upload_installer_from_url(
         db, current_user, "upload", "installer",
         entity_id=installer.id,
         entity_identifier=package.identifier,
-        metadata={
+        meta={
             "version": version.version,
             "source_url": upload_data.source_url,
             "filename": filename,
