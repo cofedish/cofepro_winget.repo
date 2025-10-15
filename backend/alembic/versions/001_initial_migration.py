@@ -17,12 +17,7 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Create enum types
-    op.execute("CREATE TYPE userrole AS ENUM ('admin', 'maintainer', 'viewer', 'service')")
-    op.execute("CREATE TYPE installertype AS ENUM ('exe', 'msi', 'msix', 'appx', 'zip', 'inno', 'nullsoft', 'wix', 'burn', 'portable')")
-    op.execute("CREATE TYPE architecture AS ENUM ('x86', 'x64', 'arm', 'arm64', 'neutral')")
-    op.execute("CREATE TYPE installerscope AS ENUM ('user', 'machine')")
-
+    # Note: Enum types are created automatically by SQLAlchemy when op.create_table() is called
     # Users table
     op.create_table(
         'users',

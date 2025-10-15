@@ -2,6 +2,7 @@
 Database connection and session management
 """
 from typing import AsyncGenerator
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import declarative_base
 
@@ -42,10 +43,13 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 async def init_db() -> None:
     """
-    Initialize database (create tables if they don't exist)
+    Initialize database connection (test connectivity)
+
+    Note: Schema migrations are handled by Alembic, not create_all()
     """
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    async with engine.connect() as conn:
+        # Just test the connection
+        await conn.execute(text("SELECT 1"))
 
 
 async def close_db() -> None:

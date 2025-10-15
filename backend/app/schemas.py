@@ -219,7 +219,7 @@ class InstallerResponse(InstallerBase):
 
 class WinGetInformation(BaseModel):
     """WinGet /information endpoint response"""
-    Data: Dict[str, str] = {
+    Data: Dict[str, Any] = {
         "SourceIdentifier": "Private.WinGet.Source",
         "ServerSupportedVersions": ["1.0.0", "1.1.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0"]
     }

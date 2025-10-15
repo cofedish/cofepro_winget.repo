@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(docker compose:*)"
+      "Bash(docker compose:*)",
+      "Bash(curl:*)",
+      "Bash(openssl req:*)",
+      "Bash(MSYS_NO_PATHCONV=1 openssl req:*)",
+      "Bash(printf:*)",
+      "Bash(docker cp:*)"
     ],
     "deny": [],
     "ask": []

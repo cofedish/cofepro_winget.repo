@@ -24,6 +24,13 @@ security_scheme = HTTPBearer()
 
 def hash_password(password: str) -> str:
     """Hash a password"""
+    # Ensure password is a clean string and truncate to 72 bytes for bcrypt
+    password = password.strip()
+    password_bytes = password.encode('utf-8')
+    if len(password_bytes) > 72:
+        # Truncate to 72 bytes for bcrypt
+        password_bytes = password_bytes[:72]
+        password = password_bytes.decode('utf-8', errors='ignore')
     return pwd_context.hash(password)
 
 
@@ -125,9 +132,9 @@ async def get_current_active_user(
     return current_user
 
 
-async def require_role(required_role: UserRole):
+def require_role(required_role: UserRole):
     """
-    Dependency to require specific role
+    Dependency factory to require specific role
     """
     async def role_checker(current_user: User = Depends(get_current_user)) -> User:
         # Role hierarchy: admin > maintainer > viewer
