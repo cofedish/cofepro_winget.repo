@@ -16,11 +16,12 @@ export default function PackagesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div>
         <h1 className="text-3xl font-bold">Packages</h1>
-        <button className="rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90">
-          Add Package
-        </button>
+        <p className="text-muted-foreground mt-2">
+          View all packages in the repository. <strong>Mirrored</strong> packages are automatically synced from WinGet.
+          <strong> Manual</strong> packages are uploaded by you.
+        </p>
       </div>
 
       <div className="rounded-lg border bg-card">

@@ -14,7 +14,7 @@ from app.config import settings
 from app.database import init_db, close_db
 from app.s3 import s3_client
 from app.utils import setup_logging
-from app.routers import auth, winget, admin, upload
+from app.routers import auth, winget, admin, upload, system
 
 # Setup logging
 setup_logging(settings.log_level, settings.log_format)
@@ -124,6 +124,7 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(winget.router)
 app.include_router(admin.router, prefix="/api")
 app.include_router(upload.router, prefix="/api")
+app.include_router(system.router, prefix="/api")
 
 
 # Root endpoint
