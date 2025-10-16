@@ -2,6 +2,8 @@
 File upload and download routes
 """
 import io
+import tempfile
+import os
 from typing import Optional
 from fastapi import (
     APIRouter, Depends, HTTPException, status, UploadFile,
@@ -15,11 +17,12 @@ import httpx
 
 from app.database import get_db
 from app.models import User, UserRole, Version, Installer
-from app.schemas import InstallerResponse, UploadFromUrlRequest
+from app.schemas import InstallerResponse, UploadFromUrlRequest, ExtractedMetadata, ExtractMetadataRequest
 from app.security import require_role
 from app.s3 import s3_client, calculate_sha256, generate_s3_key
 from app.utils import create_audit_log, sanitize_filename
 from app.config import settings
+from app.metadata_extractor import extract_metadata, extract_metadata_from_url
 
 router = APIRouter(tags=["Upload & Download"])
 
@@ -319,4 +322,78 @@ async def download_installer(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to stream file: {str(e)}"
+        )
+
+
+@router.post("/admin/extract-metadata", response_model=ExtractedMetadata)
+async def extract_metadata_from_file(
+    file: UploadFile = File(...),
+    current_user: User = Depends(require_role(UserRole.MAINTAINER))
+):
+    """
+    Extract metadata from uploaded installer file (MSI or EXE)
+
+    This endpoint extracts product name, publisher, version, and description
+    from the installer file's embedded metadata
+    """
+    # Save file to temp location
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1])
+
+    try:
+        # Write uploaded file to temp
+        content = await file.read()
+        temp_file.write(content)
+        temp_file.flush()
+        temp_file.close()
+
+        # Extract metadata
+        metadata = extract_metadata(temp_file.name)
+
+        # Cleanup
+        os.unlink(temp_file.name)
+
+        # Convert to response model
+        return ExtractedMetadata(
+            product_name=metadata.product_name,
+            publisher=metadata.publisher,
+            version=metadata.version,
+            description=metadata.description,
+            copyright=metadata.copyright,
+            file_description=metadata.file_description
+        )
+    except Exception as e:
+        # Cleanup on error
+        if os.path.exists(temp_file.name):
+            os.unlink(temp_file.name)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to extract metadata: {str(e)}"
+        )
+
+
+@router.post("/admin/extract-metadata-from-url", response_model=ExtractedMetadata)
+async def extract_metadata_from_url_endpoint(
+    request_data: ExtractMetadataRequest,
+    current_user: User = Depends(require_role(UserRole.MAINTAINER))
+):
+    """
+    Extract metadata from installer file at URL (MSI or EXE)
+
+    Downloads the file (or first part) and extracts metadata
+    """
+    try:
+        metadata = await extract_metadata_from_url(request_data.url)
+
+        return ExtractedMetadata(
+            product_name=metadata.product_name,
+            publisher=metadata.publisher,
+            version=metadata.version,
+            description=metadata.description,
+            copyright=metadata.copyright,
+            file_description=metadata.file_description
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to extract metadata from URL: {str(e)}"
         )

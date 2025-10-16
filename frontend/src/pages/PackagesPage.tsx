@@ -11,16 +11,16 @@ export default function PackagesPage() {
   })
 
   if (isLoading) {
-    return <div>Loading packages...</div>
+    return <div>Загрузка пакетов...</div>
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Packages</h1>
+        <h1 className="text-3xl font-bold">Пакеты</h1>
         <p className="text-muted-foreground mt-2">
-          View all packages in the repository. <strong>Mirrored</strong> packages are automatically synced from WinGet.
-          <strong> Manual</strong> packages are uploaded by you.
+          Просмотр всех пакетов в репозитории. <strong>Зеркалированные</strong> пакеты автоматически синхронизируются из WinGet.
+          <strong> Ручные</strong> пакеты загружены вами.
         </p>
       </div>
 
@@ -28,11 +28,11 @@ export default function PackagesPage() {
         <table className="w-full">
           <thead className="border-b">
             <tr>
-              <th className="p-4 text-left">Identifier</th>
-              <th className="p-4 text-left">Name</th>
-              <th className="p-4 text-left">Publisher</th>
-              <th className="p-4 text-left">Type</th>
-              <th className="p-4 text-left">Status</th>
+              <th className="p-4 text-left">Идентификатор</th>
+              <th className="p-4 text-left">Название</th>
+              <th className="p-4 text-left">Издатель</th>
+              <th className="p-4 text-left">Тип</th>
+              <th className="p-4 text-left">Статус</th>
             </tr>
           </thead>
           <tbody>
@@ -45,14 +45,14 @@ export default function PackagesPage() {
                   <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
                     pkg.is_mirrored ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
                   }`}>
-                    {pkg.is_mirrored ? 'Mirrored' : 'Manual'}
+                    {pkg.is_mirrored ? 'Зеркалированный' : 'Ручной'}
                   </span>
                 </td>
                 <td className="p-4">
                   <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
                     pkg.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                   }`}>
-                    {pkg.is_active ? 'Active' : 'Inactive'}
+                    {pkg.is_active ? 'Активен' : 'Неактивен'}
                   </span>
                 </td>
               </tr>

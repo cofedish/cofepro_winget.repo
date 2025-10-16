@@ -21,14 +21,36 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             to="/"
             className="block rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
           >
-            Dashboard
+            Панель управления
           </Link>
           <Link
             to="/packages"
             className="block rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
           >
-            Packages
+            Пакеты
           </Link>
+          <Link
+            to="/upload"
+            className="block rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
+          >
+            Загрузка
+          </Link>
+          {user?.role === 'admin' && (
+            <>
+              <Link
+                to="/users"
+                className="block rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
+              >
+                Пользователи
+              </Link>
+              <Link
+                to="/settings"
+                className="block rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
+              >
+                Настройки
+              </Link>
+            </>
+          )}
         </nav>
       </aside>
 
@@ -42,7 +64,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 onClick={handleLogout}
                 className="rounded-md bg-secondary px-3 py-1 text-sm hover:bg-secondary/80"
               >
-                Logout
+                Выйти
               </button>
             </div>
           </div>

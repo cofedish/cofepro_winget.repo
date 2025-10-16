@@ -11,7 +11,7 @@ export default function DashboardPage() {
   })
 
   if (isLoading) {
-    return <div>Loading...</div>
+    return <div>Загрузка...</div>
   }
 
   const formatBytes = (bytes: number) => {
@@ -24,55 +24,55 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Dashboard</h1>
+      <h1 className="text-3xl font-bold">Панель управления</h1>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border bg-card p-6">
-          <h3 className="text-sm font-medium text-muted-foreground">Total Packages</h3>
+          <h3 className="text-sm font-medium text-muted-foreground">Всего пакетов</h3>
           <p className="mt-2 text-3xl font-bold">{stats?.total_packages || 0}</p>
         </div>
 
         <div className="rounded-lg border bg-card p-6">
-          <h3 className="text-sm font-medium text-muted-foreground">Total Versions</h3>
+          <h3 className="text-sm font-medium text-muted-foreground">Всего версий</h3>
           <p className="mt-2 text-3xl font-bold">{stats?.total_versions || 0}</p>
         </div>
 
         <div className="rounded-lg border bg-card p-6">
-          <h3 className="text-sm font-medium text-muted-foreground">Total Installers</h3>
+          <h3 className="text-sm font-medium text-muted-foreground">Всего установщиков</h3>
           <p className="mt-2 text-3xl font-bold">{stats?.total_installers || 0}</p>
         </div>
 
         <div className="rounded-lg border bg-card p-6">
-          <h3 className="text-sm font-medium text-muted-foreground">Storage Used</h3>
+          <h3 className="text-sm font-medium text-muted-foreground">Использовано места</h3>
           <p className="mt-2 text-3xl font-bold">{formatBytes(stats?.total_size_bytes || 0)}</p>
         </div>
 
         <div className="rounded-lg border bg-card p-6">
-          <h3 className="text-sm font-medium text-muted-foreground">Mirrored Packages</h3>
+          <h3 className="text-sm font-medium text-muted-foreground">Зеркалированных пакетов</h3>
           <p className="mt-2 text-3xl font-bold">{stats?.mirrored_packages || 0}</p>
         </div>
 
         <div className="rounded-lg border bg-card p-6">
-          <h3 className="text-sm font-medium text-muted-foreground">Manual Packages</h3>
+          <h3 className="text-sm font-medium text-muted-foreground">Ручных пакетов</h3>
           <p className="mt-2 text-3xl font-bold">{stats?.manual_packages || 0}</p>
         </div>
 
         <div className="rounded-lg border bg-card p-6">
-          <h3 className="text-sm font-medium text-muted-foreground">Recent Updates</h3>
+          <h3 className="text-sm font-medium text-muted-foreground">Недавних обновлений</h3>
           <p className="mt-2 text-3xl font-bold">{stats?.recent_updates || 0}</p>
-          <p className="mt-1 text-xs text-muted-foreground">Last 7 days</p>
+          <p className="mt-1 text-xs text-muted-foreground">За последние 7 дней</p>
         </div>
       </div>
 
       <div className="rounded-lg border bg-card p-6">
-        <h2 className="text-xl font-bold mb-4">Quick Start</h2>
+        <h2 className="text-xl font-bold mb-4">Быстрый старт</h2>
         <div className="space-y-2">
-          <p>To add this repository to your WinGet client, run:</p>
+          <p>Чтобы добавить этот репозиторий в ваш клиент WinGet, выполните:</p>
           <pre className="bg-muted p-4 rounded overflow-x-auto">
             <code>winget source add -n Private -t Microsoft.Rest -a {window.location.origin}</code>
           </pre>
           <p className="text-sm text-muted-foreground mt-4">
-            Then search and install packages using <code className="bg-muted px-1">winget search</code> and <code className="bg-muted px-1">winget install</code>
+            Затем ищите и устанавливайте пакеты, используя <code className="bg-muted px-1">winget search</code> и <code className="bg-muted px-1">winget install</code>
           </p>
         </div>
       </div>

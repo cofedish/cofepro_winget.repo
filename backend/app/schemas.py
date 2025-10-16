@@ -387,6 +387,23 @@ class AllowListConfig(BaseModel):
     packages: List[AllowListEntry]
 
 
+# ==================== Metadata Extraction Schemas ====================
+
+class ExtractedMetadata(BaseModel):
+    """Extracted metadata from installer file"""
+    product_name: Optional[str] = None
+    publisher: Optional[str] = None
+    version: Optional[str] = None
+    description: Optional[str] = None
+    copyright: Optional[str] = None
+    file_description: Optional[str] = None
+
+
+class ExtractMetadataRequest(BaseModel):
+    """Request to extract metadata from URL"""
+    url: str
+
+
 # Update forward references
 PackageWithVersions.model_rebuild()
 VersionWithInstallers.model_rebuild()

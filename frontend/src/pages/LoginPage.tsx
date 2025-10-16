@@ -16,7 +16,7 @@ export default function LoginPage() {
     try {
       await login(username, password)
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Login failed')
+      setError(err.response?.data?.detail || 'Ошибка входа')
     } finally {
       setLoading(false)
     }
@@ -26,8 +26,8 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900">
       <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow-lg dark:bg-gray-800">
         <div className="text-center">
-          <h1 className="text-3xl font-bold">Private WinGet Repository</h1>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Sign in to continue</p>
+          <h1 className="text-3xl font-bold">Приватный репозиторий WinGet</h1>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Войдите, чтобы продолжить</p>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
@@ -39,7 +39,7 @@ export default function LoginPage() {
 
           <div>
             <label htmlFor="username" className="block text-sm font-medium">
-              Username
+              Имя пользователя
             </label>
             <input
               id="username"
@@ -53,7 +53,7 @@ export default function LoginPage() {
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium">
-              Password
+              Пароль
             </label>
             <input
               id="password"
@@ -70,7 +70,7 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Вход...' : 'Войти'}
           </button>
         </form>
       </div>

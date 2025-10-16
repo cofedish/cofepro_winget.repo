@@ -3,6 +3,9 @@ import { useAuth } from './lib/auth'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import PackagesPage from './pages/PackagesPage'
+import UploadPage from './pages/UploadPage'
+import UsersPage from './pages/UsersPage'
+import SettingsPage from './pages/SettingsPage'
 import Layout from './components/Layout'
 
 function App() {
@@ -13,7 +16,7 @@ function App() {
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading...</p>
+          <p className="mt-4 text-muted-foreground">Загрузка...</p>
         </div>
       </div>
     )
@@ -33,6 +36,9 @@ function App() {
       <Routes>
         <Route path="/" element={<DashboardPage />} />
         <Route path="/packages" element={<PackagesPage />} />
+        <Route path="/upload" element={<UploadPage />} />
+        <Route path="/users" element={<UsersPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>

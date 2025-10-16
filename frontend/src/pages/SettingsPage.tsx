@@ -46,11 +46,11 @@ export default function SettingsPage() {
       return response.data
     },
     onSuccess: () => {
-      alert('Allow list saved successfully! Restart the updater to apply changes.')
+      alert('Список разрешений успешно сохранен! Перезапустите службу обновления для применения изменений.')
       queryClient.invalidateQueries({ queryKey: ['allow-list'] })
     },
     onError: (error: any) => {
-      alert(`Error: ${error?.response?.data?.detail || 'Failed to save'}`)
+      alert(`Ошибка: ${error?.response?.data?.detail || 'Не удалось сохранить'}`)
     },
   })
 
@@ -60,10 +60,10 @@ export default function SettingsPage() {
       return response.data
     },
     onSuccess: () => {
-      alert('Updater restarted successfully! Synchronization will begin shortly.')
+      alert('Служба обновления успешно перезапущена! Синхронизация начнется в ближайшее время.')
     },
     onError: (error: any) => {
-      alert(`Error: ${error?.response?.data?.detail || 'Failed to trigger updater'}`)
+      alert(`Ошибка: ${error?.response?.data?.detail || 'Не удалось запустить службу обновления'}`)
     },
   })
 
@@ -71,8 +71,8 @@ export default function SettingsPage() {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600">Access Denied</h2>
-          <p className="mt-2 text-muted-foreground">You don't have permission to view this page.</p>
+          <h2 className="text-2xl font-bold text-red-600">Доступ запрещен</h2>
+          <p className="mt-2 text-muted-foreground">У вас нет прав для просмотра этой страницы.</p>
         </div>
       </div>
     )
@@ -80,7 +80,7 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Settings</h1>
+      <h1 className="text-3xl font-bold">Настройки</h1>
 
       {/* Tabs */}
       <div className="flex gap-2 border-b">
@@ -92,7 +92,7 @@ export default function SettingsPage() {
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          Allow List
+          Список разрешений
         </button>
         <button
           onClick={() => setActiveTab('updater')}
@@ -102,7 +102,7 @@ export default function SettingsPage() {
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          Updater
+          Служба обновления
         </button>
         <button
           onClick={() => setActiveTab('audit')}
@@ -112,7 +112,7 @@ export default function SettingsPage() {
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          Audit Logs
+          Журнал аудита
         </button>
       </div>
 
@@ -120,14 +120,14 @@ export default function SettingsPage() {
       {activeTab === 'allowlist' && (
         <div className="space-y-4">
           <div className="rounded-lg border bg-card p-6">
-            <h2 className="text-xl font-semibold mb-4">Package Allow List</h2>
+            <h2 className="text-xl font-semibold mb-4">Список разрешенных пакетов</h2>
             <p className="text-muted-foreground mb-4">
-              Configure which packages should be automatically mirrored from the public WinGet repository.
-              Add package identifiers, architectures, installer types, and version limits.
+              Настройте, какие пакеты должны автоматически зеркалироваться из публичного репозитория WinGet.
+              Добавьте идентификаторы пакетов, архитектуры, типы установщиков и лимиты версий.
             </p>
 
             {allowListLoading ? (
-              <div className="text-center p-8">Loading...</div>
+              <div className="text-center p-8">Загрузка...</div>
             ) : (
               <>
                 <textarea
@@ -143,13 +143,13 @@ export default function SettingsPage() {
                     disabled={saveAllowListMutation.isPending}
                     className="rounded-md bg-primary px-6 py-2 text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                   >
-                    {saveAllowListMutation.isPending ? 'Saving...' : 'Save Changes'}
+                    {saveAllowListMutation.isPending ? 'Сохранение...' : 'Сохранить изменения'}
                   </button>
                   <button
                     onClick={() => queryClient.invalidateQueries({ queryKey: ['allow-list'] })}
                     className="rounded-md border px-6 py-2 hover:bg-muted"
                   >
-                    Reset
+                    Сбросить
                   </button>
                 </div>
               </>
@@ -157,7 +157,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="rounded-lg border bg-muted/50 p-4">
-            <h3 className="font-semibold mb-2">Example Configuration</h3>
+            <h3 className="font-semibold mb-2">Пример конфигурации</h3>
             <pre className="text-sm overflow-x-auto bg-background p-3 rounded">
 {`{
   "packages": [
@@ -184,37 +184,37 @@ export default function SettingsPage() {
       {activeTab === 'updater' && (
         <div className="space-y-4">
           <div className="rounded-lg border bg-card p-6">
-            <h2 className="text-xl font-semibold mb-4">Updater Service</h2>
+            <h2 className="text-xl font-semibold mb-4">Служба обновления</h2>
             <p className="text-muted-foreground mb-6">
-              The updater automatically synchronizes packages from the public WinGet repository based on your allow list.
-              It runs periodically in the background.
+              Служба обновления автоматически синхронизирует пакеты из публичного репозитория WinGet на основе вашего списка разрешений.
+              Она работает периодически в фоновом режиме.
             </p>
 
             <div className="space-y-4">
               <div className="rounded-lg border p-4">
-                <h3 className="font-semibold mb-2">Manual Synchronization</h3>
+                <h3 className="font-semibold mb-2">Ручная синхронизация</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Click the button below to restart the updater service and trigger an immediate synchronization.
-                  This is useful after updating the allow list.
+                  Нажмите кнопку ниже, чтобы перезапустить службу обновления и запустить немедленную синхронизацию.
+                  Это полезно после обновления списка разрешений.
                 </p>
                 <button
                   onClick={() => triggerUpdaterMutation.mutate()}
                   disabled={triggerUpdaterMutation.isPending}
                   className="rounded-md bg-primary px-6 py-2 text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 >
-                  {triggerUpdaterMutation.isPending ? 'Triggering...' : 'Trigger Sync Now'}
+                  {triggerUpdaterMutation.isPending ? 'Запуск...' : 'Запустить синхронизацию'}
                 </button>
               </div>
 
               <div className="rounded-lg border p-4">
-                <h3 className="font-semibold mb-2">How It Works</h3>
+                <h3 className="font-semibold mb-2">Как это работает</h3>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Updater reads the allow list configuration</li>
-                  <li>• Fetches package manifests from WinGet Community repository</li>
-                  <li>• Downloads installer files and verifies SHA256 checksums</li>
-                  <li>• Stores installers in S3/MinIO</li>
-                  <li>• Creates or updates package records in the database</li>
-                  <li>• Marked as "Mirrored" packages in the Packages list</li>
+                  <li>• Служба обновления читает конфигурацию списка разрешений</li>
+                  <li>• Получает манифесты пакетов из репозитория WinGet Community</li>
+                  <li>• Загружает файлы установщиков и проверяет контрольные суммы SHA256</li>
+                  <li>• Сохраняет установщики в S3/MinIO</li>
+                  <li>• Создает или обновляет записи пакетов в базе данных</li>
+                  <li>• Помечает пакеты как "Зеркалированные" в списке пакетов</li>
                 </ul>
               </div>
             </div>
@@ -226,17 +226,17 @@ export default function SettingsPage() {
       {activeTab === 'audit' && (
         <div className="rounded-lg border bg-card">
           {auditLoading ? (
-            <div className="p-8 text-center">Loading audit logs...</div>
+            <div className="p-8 text-center">Загрузка журнала аудита...</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="border-b">
                   <tr>
-                    <th className="p-4 text-left">Timestamp</th>
-                    <th className="p-4 text-left">User</th>
-                    <th className="p-4 text-left">Action</th>
-                    <th className="p-4 text-left">Entity</th>
-                    <th className="p-4 text-left">Identifier</th>
+                    <th className="p-4 text-left">Время</th>
+                    <th className="p-4 text-left">Пользователь</th>
+                    <th className="p-4 text-left">Действие</th>
+                    <th className="p-4 text-left">Сущность</th>
+                    <th className="p-4 text-left">Идентификатор</th>
                     <th className="p-4 text-left">IP</th>
                   </tr>
                 </thead>
