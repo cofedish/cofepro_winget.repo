@@ -93,7 +93,21 @@ async def get_current_user(
     token = credentials.credentials
     payload = decode_token(token)
 
-    user_id: Optional[int] = payload.get("sub")
+    user_id_str = payload.get("sub")
+    if user_id_str is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+        )
+
+    try:
+        user_id: int = int(user_id_str)
+    except (ValueError, TypeError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+        )
+
     if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -184,7 +198,7 @@ async def create_tokens_for_user(db: AsyncSession, user: User) -> Dict[str, str]
     # Handle both enum and string role (due to values_callable in SQLAlchemy)
     role_value = user.role.value if hasattr(user.role, 'value') else str(user.role)
     access_token = create_access_token(
-        data={"sub": user.id, "role": role_value},
+        data={"sub": str(user.id), "role": role_value},  # sub must be string for python-jose
         expires_delta=access_token_expires
     )
 
