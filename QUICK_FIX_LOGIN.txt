@@ -1,0 +1,63 @@
+========================================
+БЫСТРОЕ РЕШЕНИЕ ПРОБЛЕМЫ ЛОГИНА
+========================================
+
+ПРОБЛЕМА: 401 ошибка при попытке войти на cofemon.online
+ПРИЧИНА: Пользователь admin не создан в production базе
+
+РЕШЕНИЕ (выполните в терминале):
+
+1. Подключитесь к серверу:
+
+   ssh root@cofemon.online
+
+   Пароль: GLtr7BsrQ053
+
+2. После подключения выполните:
+
+   cd /root/winget-repo/deploy
+   docker compose exec backend python create_admin_auto.py
+
+3. Должен появиться вывод:
+
+   ==================================================
+   Admin user created successfully!
+   ==================================================
+   Username: admin
+   Email: admin@example.com
+   Role: admin
+   ID: 1
+   Password: admin123
+
+4. Теперь можно войти на сайте:
+
+   https://cofemon.online/login
+   Username: admin
+   Password: admin123
+
+========================================
+
+ЕСЛИ НЕ РАБОТАЕТ:
+
+1. Проверьте, что backend запущен:
+   docker compose ps
+
+2. Если backend не запущен:
+   docker compose up -d backend
+   sleep 20
+   docker compose exec backend python create_admin_auto.py
+
+3. Если скрипт не найден:
+   cd /root/winget-repo
+   git pull origin main
+   cd deploy
+   docker compose up -d --build backend
+   sleep 20
+   docker compose exec backend python create_admin_auto.py
+
+========================================
+
+ДЛЯ АВТОМАТИЗАЦИИ (опционально):
+См. файл SETUP_SSH_KEY.md для настройки SSH ключей
+
+========================================
