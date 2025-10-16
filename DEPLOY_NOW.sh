@@ -33,28 +33,43 @@ echo ""
 
 # 4. Test authentication
 echo "Step 4/5: Testing authentication..."
-docker compose exec -T backend python -c "
-import requests
-print('Testing login...')
-resp = requests.post('http://localhost:8000/api/auth/login', json={'username':'admin','password':'admin123'}, timeout=5)
-if resp.status_code == 200:
-    token = resp.json()['access_token']
-    print('✓ Login successful')
-    me_resp = requests.get('http://localhost:8000/api/auth/me', headers={'Authorization': f'Bearer {token}'}, timeout=5)
-    if me_resp.status_code == 200:
-        print('✓ /auth/me successful:', me_resp.json()['username'])
-        print('✓✓✓ AUTHENTICATION WORKING!')
-    else:
-        print('✗ /auth/me failed:', me_resp.status_code)
-        exit(1)
-else:
-    print('✗ Login failed:', resp.status_code)
-    exit(1)
-" || {
-    echo "✗ Test failed - checking backend logs..."
+# Test login
+LOGIN_RESP=$(docker compose exec -T backend curl -s -w "\n%{http_code}" \
+    -X POST http://localhost:8000/api/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{"username":"admin","password":"admin123"}')
+
+LOGIN_CODE=$(echo "$LOGIN_RESP" | tail -n1)
+LOGIN_BODY=$(echo "$LOGIN_RESP" | head -n-1)
+
+if [ "$LOGIN_CODE" = "200" ]; then
+    echo "✓ Login successful"
+    TOKEN=$(echo "$LOGIN_BODY" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
+
+    # Test /auth/me
+    ME_RESP=$(docker compose exec -T backend curl -s -w "\n%{http_code}" \
+        http://localhost:8000/api/auth/me \
+        -H "Authorization: Bearer $TOKEN")
+
+    ME_CODE=$(echo "$ME_RESP" | tail -n1)
+    ME_BODY=$(echo "$ME_RESP" | head -n-1)
+
+    if [ "$ME_CODE" = "200" ]; then
+        USERNAME=$(echo "$ME_BODY" | grep -o '"username":"[^"]*"' | cut -d'"' -f4)
+        echo "✓ /auth/me successful: $USERNAME"
+        echo "✓✓✓ AUTHENTICATION WORKING!"
+    else
+        echo "✗ /auth/me failed: $ME_CODE"
+        echo "$ME_BODY"
+        docker compose logs --tail=50 backend
+        exit 1
+    fi
+else
+    echo "✗ Login failed: $LOGIN_CODE"
+    echo "$LOGIN_BODY"
     docker compose logs --tail=50 backend
     exit 1
-}
+fi
 echo ""
 
 # 5. Rebuild frontend
