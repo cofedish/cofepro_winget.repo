@@ -58,8 +58,13 @@ async def test_authentication():
 
     # Create token
     print(f"\n4. Creating JWT token...")
+    print(f"   Role type: {type(role)}")
+    print(f"   Role value: {role}")
+    print(f"   Has .value attribute: {hasattr(role, 'value')}")
+
+    role_value = role.value if hasattr(role, 'value') else str(role)
     token = create_access_token(
-        data={"sub": user_id, "role": str(role)},
+        data={"sub": user_id, "role": role_value},
         expires_delta=timedelta(minutes=30)
     )
     print(f"   Token (first 50 chars): {token[:50]}...")

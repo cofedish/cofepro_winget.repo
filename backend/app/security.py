@@ -181,8 +181,10 @@ async def create_tokens_for_user(db: AsyncSession, user: User) -> Dict[str, str]
     """
     # Create access token
     access_token_expires = timedelta(minutes=settings.jwt_access_token_expire_minutes)
+    # Handle both enum and string role (due to values_callable in SQLAlchemy)
+    role_value = user.role.value if hasattr(user.role, 'value') else str(user.role)
     access_token = create_access_token(
-        data={"sub": user.id, "role": user.role.value},
+        data={"sub": user.id, "role": role_value},
         expires_delta=access_token_expires
     )
 
