@@ -6,8 +6,9 @@ export default function UploadPage() {
   const queryClient = useQueryClient()
   const [uploadMethod, setUploadMethod] = useState<'file' | 'url'>('file')
   const [isExtractingMetadata, setIsExtractingMetadata] = useState(false)
+  const [metadataExtracted, setMetadataExtracted] = useState(false)
 
-  // Form data
+  // Form data - all auto-filled from metadata
   const [packageId, setPackageId] = useState('')
   const [packageName, setPackageName] = useState('')
   const [publisher, setPublisher] = useState('')
@@ -32,6 +33,7 @@ export default function UploadPage() {
   // Extract metadata from file
   const extractMetadataFromFile = async (file: File) => {
     setIsExtractingMetadata(true)
+    setMetadataExtracted(false)
     try {
       const formData = new FormData()
       formData.append('file', file)
@@ -42,27 +44,30 @@ export default function UploadPage() {
 
       const metadata = response.data
 
-      // Auto-fill form fields if metadata is available
-      if (metadata.product_name && !packageName) {
+      // Auto-fill form fields with metadata
+      if (metadata.product_name) {
         setPackageName(metadata.product_name)
       }
-      if (metadata.publisher && !publisher) {
+      if (metadata.publisher) {
         setPublisher(metadata.publisher)
       }
-      if (metadata.version && !version) {
+      if (metadata.version) {
         setVersion(metadata.version)
       }
-      if (metadata.description && !description) {
+      if (metadata.description) {
         setDescription(metadata.description)
       }
 
-      // Auto-generate package ID if not set
-      if (metadata.publisher && metadata.product_name && !packageId) {
-        const id = `${metadata.publisher.replace(/\s+/g, '')}.${metadata.product_name.replace(/\s+/g, '')}`
+      // Auto-generate package ID
+      if (metadata.publisher && metadata.product_name) {
+        const id = `${metadata.publisher.replace(/[^a-zA-Z0-9]/g, '')}.${metadata.product_name.replace(/[^a-zA-Z0-9]/g, '')}`
         setPackageId(id)
       }
-    } catch (error) {
+
+      setMetadataExtracted(true)
+    } catch (error: any) {
       console.error('Failed to extract metadata:', error)
+      alert('Не удалось извлечь метаданные из файла. Возможно, файл не содержит информации о версии.')
     } finally {
       setIsExtractingMetadata(false)
     }
@@ -73,6 +78,7 @@ export default function UploadPage() {
     if (!sourceUrl) return
 
     setIsExtractingMetadata(true)
+    setMetadataExtracted(false)
     try {
       const response = await api.post('/admin/extract-metadata-from-url', {
         url: sourceUrl,
@@ -80,26 +86,27 @@ export default function UploadPage() {
 
       const metadata = response.data
 
-      // Auto-fill form fields if metadata is available
-      if (metadata.product_name && !packageName) {
+      // Auto-fill form fields with metadata
+      if (metadata.product_name) {
         setPackageName(metadata.product_name)
       }
-      if (metadata.publisher && !publisher) {
+      if (metadata.publisher) {
         setPublisher(metadata.publisher)
       }
-      if (metadata.version && !version) {
+      if (metadata.version) {
         setVersion(metadata.version)
       }
-      if (metadata.description && !description) {
+      if (metadata.description) {
         setDescription(metadata.description)
       }
 
-      // Auto-generate package ID if not set
-      if (metadata.publisher && metadata.product_name && !packageId) {
-        const id = `${metadata.publisher.replace(/\s+/g, '')}.${metadata.product_name.replace(/\s+/g, '')}`
+      // Auto-generate package ID
+      if (metadata.publisher && metadata.product_name) {
+        const id = `${metadata.publisher.replace(/[^a-zA-Z0-9]/g, '')}.${metadata.product_name.replace(/[^a-zA-Z0-9]/g, '')}`
         setPackageId(id)
       }
 
+      setMetadataExtracted(true)
       alert('Метаданные успешно извлечены!')
     } catch (error) {
       console.error('Failed to extract metadata:', error)
@@ -111,6 +118,11 @@ export default function UploadPage() {
 
   const uploadMutation = useMutation({
     mutationFn: async () => {
+      // Verify we have metadata
+      if (!metadataExtracted || !packageId || !packageName || !publisher || !version) {
+        throw new Error('Пожалуйста, сначала загрузите файл для извлечения метаданных')
+      }
+
       // Create package
       const pkgResponse = await api.post('/admin/packages', {
         identifier: packageId,
@@ -151,7 +163,7 @@ export default function UploadPage() {
       return { packageDbId }
     },
     onSuccess: () => {
-      alert('Пакет успешно загружен!')
+      alert('Пакет успешно загружен! Хэш файла проверен и сохранён.')
       // Reset form
       setPackageId('')
       setPackageName('')
@@ -160,10 +172,11 @@ export default function UploadPage() {
       setDescription('')
       setSelectedFile(null)
       setSourceUrl('')
+      setMetadataExtracted(false)
       queryClient.invalidateQueries({ queryKey: ['packages'] })
     },
     onError: (error: any) => {
-      const detail = error?.response?.data?.detail || 'Ошибка загрузки'
+      const detail = error?.response?.data?.detail || error?.message || 'Ошибка загрузки'
       alert(`Ошибка: ${detail}`)
     },
   })
@@ -171,8 +184,13 @@ export default function UploadPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (!metadataExtracted) {
+      alert('Пожалуйста, дождитесь извлечения метаданных из файла')
+      return
+    }
+
     if (!packageId || !packageName || !publisher || !version) {
-      alert('Пожалуйста, заполните все обязательные поля')
+      alert('Не удалось извлечь все необходимые метаданные из файла. Проверьте, что файл содержит информацию о продукте.')
       return
     }
 
@@ -194,14 +212,23 @@ export default function UploadPage() {
       <div>
         <h1 className="text-3xl font-bold">Загрузка пакета</h1>
         <p className="text-muted-foreground mt-2">
-          Добавить новый пакет в репозиторий. Метаданные будут автоматически извлечены из установочного файла.
+          Загрузите установочный файл (EXE или MSI). Все данные будут автоматически извлечены из файла.
+          Хэш SHA256 будет вычислен и сохранён для проверки целостности.
         </p>
       </div>
 
       {isExtractingMetadata && (
         <div className="rounded-lg border bg-blue-50 dark:bg-blue-950 p-4">
           <p className="text-sm text-blue-900 dark:text-blue-100">
-            🔍 Извлекаем метаданные из файла...
+            🔍 Извлекаем метаданные из файла и вычисляем хэш...
+          </p>
+        </div>
+      )}
+
+      {metadataExtracted && (
+        <div className="rounded-lg border bg-green-50 dark:bg-green-950 p-4">
+          <p className="text-sm text-green-900 dark:text-green-100">
+            ✅ Метаданные успешно извлечены! Данные готовы к загрузке.
           </p>
         </div>
       )}
@@ -209,12 +236,15 @@ export default function UploadPage() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Upload Method */}
         <div className="rounded-lg border bg-card p-6 space-y-4">
-          <h2 className="text-xl font-semibold">Установочный файл</h2>
+          <h2 className="text-xl font-semibold">1. Выберите установочный файл</h2>
 
           <div className="flex gap-2 mb-4">
             <button
               type="button"
-              onClick={() => setUploadMethod('file')}
+              onClick={() => {
+                setUploadMethod('file')
+                setMetadataExtracted(false)
+              }}
               className={`px-4 py-2 rounded-md ${
                 uploadMethod === 'file' ? 'bg-primary text-primary-foreground' : 'bg-muted'
               }`}
@@ -223,7 +253,10 @@ export default function UploadPage() {
             </button>
             <button
               type="button"
-              onClick={() => setUploadMethod('url')}
+              onClick={() => {
+                setUploadMethod('url')
+                setMetadataExtracted(false)
+              }}
               className={`px-4 py-2 rounded-md ${
                 uploadMethod === 'url' ? 'bg-primary text-primary-foreground' : 'bg-muted'
               }`}
@@ -234,7 +267,7 @@ export default function UploadPage() {
 
           {uploadMethod === 'file' ? (
             <div>
-              <label className="block text-sm font-medium mb-1">Выберите файл *</label>
+              <label className="block text-sm font-medium mb-1">Выберите файл (EXE или MSI) *</label>
               <input
                 type="file"
                 onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
@@ -246,8 +279,9 @@ export default function UploadPage() {
                   {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} МБ)
                 </p>
               )}
-              <p className="mt-1 text-xs text-muted-foreground">
-                Метаданные будут автоматически извлечены из файла
+              <p className="mt-2 text-xs text-muted-foreground">
+                При выборе файла автоматически извлекаются: название продукта, издатель, версия, описание.
+                Также вычисляется SHA256 хэш для проверки целостности.
               </p>
             </div>
           ) : (
@@ -270,8 +304,8 @@ export default function UploadPage() {
                   {isExtractingMetadata ? 'Извлечение...' : 'Извлечь метаданные'}
                 </button>
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Нажмите кнопку для извлечения метаданных из файла по URL
+              <p className="mt-2 text-xs text-muted-foreground">
+                Нажмите кнопку для загрузки и извлечения метаданных из файла по URL
               </p>
             </div>
           )}
@@ -309,94 +343,95 @@ export default function UploadPage() {
           </div>
         </div>
 
-        {/* Package Information */}
-        <div className="rounded-lg border bg-card p-6 space-y-4">
-          <h2 className="text-xl font-semibold">Информация о пакете</h2>
+        {/* Package Information - Auto-filled, read-only */}
+        {metadataExtracted && (
+          <div className="rounded-lg border bg-card p-6 space-y-4">
+            <h2 className="text-xl font-semibold">2. Извлечённые метаданные</h2>
+            <p className="text-sm text-muted-foreground">
+              Данные автоматически извлечены из установочного файла. При необходимости вы можете их отредактировать.
+            </p>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                ID пакета * <span className="text-xs text-muted-foreground">(напр. Publisher.AppName)</span>
-              </label>
-              <input
-                type="text"
-                required
-                value={packageId}
-                onChange={(e) => setPackageId(e.target.value)}
-                placeholder="MyCompany.MyApp"
-                className="w-full rounded-md border bg-background px-3 py-2"
-              />
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium mb-1">ID пакета</label>
+                <input
+                  type="text"
+                  value={packageId}
+                  onChange={(e) => setPackageId(e.target.value)}
+                  className="w-full rounded-md border bg-background px-3 py-2"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">Автоматически сгенерирован</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Название пакета</label>
+                <input
+                  type="text"
+                  value={packageName}
+                  onChange={(e) => setPackageName(e.target.value)}
+                  className="w-full rounded-md border bg-background px-3 py-2"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">Из метаданных файла</p>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium mb-1">Издатель</label>
+                <input
+                  type="text"
+                  value={publisher}
+                  onChange={(e) => setPublisher(e.target.value)}
+                  className="w-full rounded-md border bg-background px-3 py-2"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">Из метаданных файла</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Версия</label>
+                <input
+                  type="text"
+                  value={version}
+                  onChange={(e) => setVersion(e.target.value)}
+                  className="w-full rounded-md border bg-background px-3 py-2"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">Из метаданных файла</p>
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Название пакета *</label>
-              <input
-                type="text"
-                required
-                value={packageName}
-                onChange={(e) => setPackageName(e.target.value)}
-                placeholder="Моё приложение"
+              <label className="block text-sm font-medium mb-1">Описание</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Описание извлечено из файла"
                 className="w-full rounded-md border bg-background px-3 py-2"
+                rows={2}
               />
+              <p className="mt-1 text-xs text-muted-foreground">Из метаданных файла</p>
             </div>
           </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="block text-sm font-medium mb-1">Издатель *</label>
-              <input
-                type="text"
-                required
-                value={publisher}
-                onChange={(e) => setPublisher(e.target.value)}
-                placeholder="Моя компания"
-                className="w-full rounded-md border bg-background px-3 py-2"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Версия *</label>
-              <input
-                type="text"
-                required
-                value={version}
-                onChange={(e) => setVersion(e.target.value)}
-                placeholder="1.0.0"
-                className="w-full rounded-md border bg-background px-3 py-2"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Описание (опционально)</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Краткое описание пакета"
-              className="w-full rounded-md border bg-background px-3 py-2"
-              rows={2}
-            />
-          </div>
-        </div>
+        )}
 
         {/* Submit */}
         <button
           type="submit"
-          disabled={uploadMutation.isPending || isExtractingMetadata}
+          disabled={uploadMutation.isPending || isExtractingMetadata || !metadataExtracted}
           className="w-full rounded-md bg-primary px-6 py-3 text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50"
         >
-          {uploadMutation.isPending ? 'Загрузка...' : 'Загрузить пакет'}
+          {uploadMutation.isPending ? 'Загрузка...' : !metadataExtracted ? 'Сначала выберите файл' : 'Загрузить пакет'}
         </button>
       </form>
 
       {/* Help Text */}
       <div className="rounded-lg border bg-muted/50 p-4">
-        <h3 className="font-semibold mb-2">Нужна помощь?</h3>
+        <h3 className="font-semibold mb-2">Автоматическая обработка</h3>
         <ul className="text-sm text-muted-foreground space-y-1">
-          <li>• ID пакета должен следовать формату: Издатель.НазваниеПриложения</li>
-          <li>• Версия должна следовать семантическому версионированию (напр. 1.0.0)</li>
-          <li>• Метаданные (название, издатель, версия) автоматически извлекаются из установочного файла</li>
-          <li>• Для зеркалируемых пакетов из WinGet используйте Настройки → Allow List</li>
+          <li>✅ Метаданные автоматически извлекаются из EXE/MSI файлов</li>
+          <li>✅ SHA256 хэш вычисляется для проверки целостности файла</li>
+          <li>✅ ID пакета генерируется автоматически из названия и издателя</li>
+          <li>✅ Все данные можно отредактировать перед загрузкой</li>
+          <li>• Для зеркалирования пакетов из публичного WinGet используйте Настройки → Allow List</li>
         </ul>
       </div>
     </div>

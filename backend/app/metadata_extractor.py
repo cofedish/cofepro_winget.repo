@@ -136,26 +136,34 @@ def extract_exe_metadata(file_path: str) -> InstallerMetadata:
         pe = pefile.PE(file_path)
 
         # Check if file has version information
-        if hasattr(pe, 'VS_VERSIONINFO'):
-            for file_info in pe.VS_VERSIONINFO[0]:
-                if hasattr(file_info, 'StringTable'):
-                    for st in file_info.StringTable:
-                        for entry in st.entries.items():
-                            key = entry[0].decode('utf-8', errors='ignore')
-                            value = entry[1].decode('utf-8', errors='ignore')
+        if hasattr(pe, 'VS_VERSIONINFO') and pe.VS_VERSIONINFO:
+            # Iterate through version info structures
+            for vs_struct in pe.VS_VERSIONINFO:
+                # Check for StringFileInfo
+                if hasattr(vs_struct, 'StringFileInfo') and vs_struct.StringFileInfo:
+                    for string_table in vs_struct.StringFileInfo:
+                        # Check for StringTable
+                        if hasattr(string_table, 'StringTable'):
+                            for st in string_table.StringTable:
+                                # Get entries dictionary
+                                if hasattr(st, 'entries'):
+                                    entries = st.entries
 
-                            if key == 'ProductName':
-                                metadata.product_name = value
-                            elif key == 'CompanyName':
-                                metadata.publisher = value
-                            elif key == 'ProductVersion':
-                                metadata.version = value
-                            elif key == 'FileDescription':
-                                metadata.file_description = value
-                            elif key == 'LegalCopyright':
-                                metadata.copyright = value
-                            elif key == 'Comments':
-                                metadata.description = value
+                                    # Extract metadata
+                                    if b'ProductName' in entries:
+                                        metadata.product_name = entries[b'ProductName'].decode('utf-8', errors='ignore')
+                                    if b'CompanyName' in entries:
+                                        metadata.publisher = entries[b'CompanyName'].decode('utf-8', errors='ignore')
+                                    if b'ProductVersion' in entries:
+                                        metadata.version = entries[b'ProductVersion'].decode('utf-8', errors='ignore')
+                                    if b'FileDescription' in entries:
+                                        metadata.file_description = entries[b'FileDescription'].decode('utf-8', errors='ignore')
+                                    if b'LegalCopyright' in entries:
+                                        metadata.copyright = entries[b'LegalCopyright'].decode('utf-8', errors='ignore')
+                                    if b'Comments' in entries:
+                                        metadata.description = entries[b'Comments'].decode('utf-8', errors='ignore')
+                                    if b'FileVersion' in entries and not metadata.version:
+                                        metadata.version = entries[b'FileVersion'].decode('utf-8', errors='ignore')
 
         # If no description but have file_description, use it
         if not metadata.description and metadata.file_description:
@@ -170,7 +178,7 @@ def extract_exe_metadata(file_path: str) -> InstallerMetadata:
     except ImportError:
         logger.error("pefile not installed, cannot extract EXE metadata")
     except Exception as e:
-        logger.error(f"Error extracting EXE metadata: {e}")
+        logger.error(f"Error extracting EXE metadata: {e}", exc_info=True)
 
     return metadata
 
@@ -233,13 +241,17 @@ async def extract_metadata_from_url(url: str) -> InstallerMetadata:
             # For MSI, we need more of the file
 
             if file_ext == '.exe':
-                # Request first 2MB only
-                headers = {'Range': 'bytes=0-2097151'}
-                response = await client.get(url, headers=headers)
+                # Request first 5MB for EXE (version info can be anywhere)
+                headers = {'Range': 'bytes=0-5242879'}
+                try:
+                    response = await client.get(url, headers=headers)
+                except:
+                    # If range not supported, download full file
+                    response = await client.get(url)
             else:
                 # For MSI, download more (or full file if small)
-                # Try to get first 5MB
-                headers = {'Range': 'bytes=0-5242879'}
+                # Try to get first 10MB
+                headers = {'Range': 'bytes=0-10485759'}
                 try:
                     response = await client.get(url, headers=headers)
                 except:
@@ -262,6 +274,6 @@ async def extract_metadata_from_url(url: str) -> InstallerMetadata:
                 os.unlink(temp_file.name)
 
     except Exception as e:
-        logger.error(f"Error extracting metadata from URL: {e}")
+        logger.error(f"Error extracting metadata from URL: {e}", exc_info=True)
 
     return metadata

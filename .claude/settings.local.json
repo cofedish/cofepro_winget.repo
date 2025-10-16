@@ -6,7 +6,17 @@
       "Bash(openssl req:*)",
       "Bash(MSYS_NO_PATHCONV=1 openssl req:*)",
       "Bash(printf:*)",
-      "Bash(docker cp:*)"
+      "Bash(docker cp:*)",
+      "Bash(ssh:*)",
+      "Bash(sshpass -p \"GLtr7BsrQ053\" ssh -o StrictHostKeyChecking=no root@cofemon.online \"cd /root/winget-repo/deploy && docker compose logs --tail=50 backend\")",
+      "Bash(powershell.exe:*)",
+      "Bash(git add:*)",
+      "Bash(docker:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInJvbGUiOiJhZG1pbiIsImV4cCI6MTc2MDYzNTc0NX0.DYgxQmH7-ujrqWKeh0Ey6zuXRLF_yn9_fs3Hfk99oCc\")",
+      "Bash(python -c \"import sys,json; d=json.load(sys.stdin); print(''''Token:'''', d[''''access_token''''][:50]+''''...''''); import os; os.system(f''''curl -sk https://localhost/api/auth/me -H \"\"Authorization: Bearer {d[\"\"access_token\"\"]}\"\"'''')\")",
+      "Bash(git restore:*)",
+      "Bash(git push:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzYwNjQ0MzQzfQ.aUnBAUVT3uvnaRslUDIECF8udJ0mFASPisShWC5REJA\")"
     ],
     "deny": [],
     "ask": []
