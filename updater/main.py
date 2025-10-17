@@ -123,28 +123,47 @@ class PackageUpdater:
             logger.error(f"Authentication error: {e}")
             return False
 
-    def load_allow_list(self) -> List[Dict[str, Any]]:
+    async def load_auto_update_configs(self) -> List[Dict[str, Any]]:
         """
-        Load package allow list
+        Load auto-update configurations via API
 
         Returns:
             List of package configurations
         """
         try:
-            allowlist_path = Path(settings.allowlist_path)
-            if not allowlist_path.exists():
-                logger.warning(f"Allow list file not found: {settings.allowlist_path}")
+            headers = {"Authorization": f"Bearer {self.api_token}"}
+
+            # Get all enabled auto-update configs
+            response = await self.http_client.get(
+                f"{settings.base_url}/api/admin/auto-update/configs?enabled_only=true",
+                headers=headers
+            )
+
+            if response.status_code != 200:
+                logger.error(f"Failed to load auto-update configs: {response.status_code}")
                 return []
 
-            with open(allowlist_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+            packages_data = response.json()
 
-            packages = data.get("packages", [])
-            logger.info(f"Loaded {len(packages)} packages from allow list")
+            packages = []
+            for pkg in packages_data:
+                if not pkg.get("auto_update_config"):
+                    continue
+
+                config = pkg["auto_update_config"]
+                packages.append({
+                    "package_identifier": pkg["identifier"],
+                    "architectures": config.get("architectures") or settings.updater_architectures_list,
+                    "installer_types": config.get("installer_types") or settings.updater_installer_types_list,
+                    "max_versions": config.get("max_versions", settings.updater_max_versions_per_package)
+                })
+
+            logger.info(f"Loaded {len(packages)} packages from API")
             return packages
 
         except Exception as e:
-            logger.error(f"Failed to load allow list: {e}")
+            logger.error(f"Failed to load auto-update configs: {e}")
+            logger.exception(e)
             return []
 
     async def check_package_exists(self, package_identifier: str) -> Optional[int]:
@@ -531,10 +550,10 @@ class PackageUpdater:
             logger.error("Authentication failed, skipping sync cycle")
             return
 
-        # Load allow list
-        packages = self.load_allow_list()
+        # Load auto-update configs from database
+        packages = await self.load_auto_update_configs()
         if not packages:
-            logger.warning("No packages in allow list")
+            logger.warning("No packages configured for auto-update")
             return
 
         logger.info(f"Processing {len(packages)} packages")

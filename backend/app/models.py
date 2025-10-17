@@ -7,7 +7,7 @@ from sqlalchemy import (
     Column, Integer, String, Text, Boolean, DateTime, ForeignKey,
     BigInteger, JSON, Enum as SQLEnum, Index
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 import enum
 
 from app.database import Base
@@ -225,7 +225,7 @@ class AutoUpdateConfig(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Relationships
-    package = relationship("Package", backref="auto_update_config")
+    package = relationship("Package", backref=backref("auto_update_config", uselist=False))
 
     __table_args__ = (
         Index("idx_auto_update_package_id", "package_id"),
