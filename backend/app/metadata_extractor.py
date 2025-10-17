@@ -135,35 +135,67 @@ def extract_exe_metadata(file_path: str) -> InstallerMetadata:
 
         pe = pefile.PE(file_path)
 
-        # Check if file has version information
-        if hasattr(pe, 'VS_VERSIONINFO') and pe.VS_VERSIONINFO:
-            # Iterate through version info structures
-            for vs_struct in pe.VS_VERSIONINFO:
-                # Check for StringFileInfo
-                if hasattr(vs_struct, 'StringFileInfo') and vs_struct.StringFileInfo:
-                    for string_table in vs_struct.StringFileInfo:
-                        # Check for StringTable
-                        if hasattr(string_table, 'StringTable'):
-                            for st in string_table.StringTable:
-                                # Get entries dictionary
+        # FileInfo contains version information
+        if hasattr(pe, 'FileInfo'):
+            for fi_list in pe.FileInfo:
+                for fi_item in fi_list:
+                    # Look for StringFileInfo
+                    if hasattr(fi_item, 'name') and 'StringFileInfo' in fi_item.name:
+                        # StringTable contains the actual metadata entries
+                        if hasattr(fi_item, 'StringTable'):
+                            for st in fi_item.StringTable:
                                 if hasattr(st, 'entries'):
                                     entries = st.entries
 
-                                    # Extract metadata
+                                    # Extract metadata - entries keys are bytes
                                     if b'ProductName' in entries:
-                                        metadata.product_name = entries[b'ProductName'].decode('utf-8', errors='ignore')
+                                        value = entries[b'ProductName']
+                                        if isinstance(value, bytes):
+                                            metadata.product_name = value.decode('utf-8', errors='ignore')
+                                        else:
+                                            metadata.product_name = str(value)
+
                                     if b'CompanyName' in entries:
-                                        metadata.publisher = entries[b'CompanyName'].decode('utf-8', errors='ignore')
+                                        value = entries[b'CompanyName']
+                                        if isinstance(value, bytes):
+                                            metadata.publisher = value.decode('utf-8', errors='ignore')
+                                        else:
+                                            metadata.publisher = str(value)
+
                                     if b'ProductVersion' in entries:
-                                        metadata.version = entries[b'ProductVersion'].decode('utf-8', errors='ignore')
+                                        value = entries[b'ProductVersion']
+                                        if isinstance(value, bytes):
+                                            metadata.version = value.decode('utf-8', errors='ignore')
+                                        else:
+                                            metadata.version = str(value)
+
                                     if b'FileDescription' in entries:
-                                        metadata.file_description = entries[b'FileDescription'].decode('utf-8', errors='ignore')
+                                        value = entries[b'FileDescription']
+                                        if isinstance(value, bytes):
+                                            metadata.file_description = value.decode('utf-8', errors='ignore')
+                                        else:
+                                            metadata.file_description = str(value)
+
                                     if b'LegalCopyright' in entries:
-                                        metadata.copyright = entries[b'LegalCopyright'].decode('utf-8', errors='ignore')
+                                        value = entries[b'LegalCopyright']
+                                        if isinstance(value, bytes):
+                                            metadata.copyright = value.decode('utf-8', errors='ignore')
+                                        else:
+                                            metadata.copyright = str(value)
+
                                     if b'Comments' in entries:
-                                        metadata.description = entries[b'Comments'].decode('utf-8', errors='ignore')
+                                        value = entries[b'Comments']
+                                        if isinstance(value, bytes):
+                                            metadata.description = value.decode('utf-8', errors='ignore')
+                                        else:
+                                            metadata.description = str(value)
+
                                     if b'FileVersion' in entries and not metadata.version:
-                                        metadata.version = entries[b'FileVersion'].decode('utf-8', errors='ignore')
+                                        value = entries[b'FileVersion']
+                                        if isinstance(value, bytes):
+                                            metadata.version = value.decode('utf-8', errors='ignore')
+                                        else:
+                                            metadata.version = str(value)
 
         # If no description but have file_description, use it
         if not metadata.description and metadata.file_description:
