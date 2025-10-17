@@ -127,6 +127,12 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      # Override BASE_URL for internal communication
+      BASE_URL: http://backend:8000
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     depends_on:
       backend:
         condition: service_healthy

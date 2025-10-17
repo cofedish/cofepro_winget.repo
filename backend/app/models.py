@@ -201,3 +201,33 @@ class RefreshToken(Base):
         Index("idx_refresh_token_hash", "token_hash"),
         Index("idx_refresh_token_user_id", "user_id"),
     )
+
+
+class AutoUpdateConfig(Base):
+    """Auto-update configuration for packages"""
+    __tablename__ = "auto_update_configs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    package_id = Column(Integer, ForeignKey("packages.id", ondelete="CASCADE"), nullable=False, unique=True)
+
+    # Update settings
+    enabled = Column(Boolean, default=True, nullable=False)
+    architectures = Column(JSON, nullable=False, default=list)  # ["x64", "x86", "arm64"]
+    installer_types = Column(JSON, nullable=False, default=list)  # ["exe", "msi"]
+    max_versions = Column(Integer, default=1, nullable=False)  # Keep N latest versions
+
+    # Last sync info
+    last_sync_at = Column(DateTime, nullable=True)
+    last_sync_status = Column(String(50), nullable=True)  # "success", "failed", "partial"
+    last_sync_message = Column(Text, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    # Relationships
+    package = relationship("Package", backref="auto_update_config")
+
+    __table_args__ = (
+        Index("idx_auto_update_package_id", "package_id"),
+        Index("idx_auto_update_enabled", "enabled"),
+    )

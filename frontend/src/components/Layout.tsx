@@ -35,6 +35,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           >
             Загрузка
           </Link>
+          <Link
+            to="/auto-update"
+            className="block rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
+          >
+            Автообновление
+          </Link>
           {user?.role === 'admin' && (
             <>
               <Link

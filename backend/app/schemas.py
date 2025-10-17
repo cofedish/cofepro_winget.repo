@@ -404,6 +404,49 @@ class ExtractMetadataRequest(BaseModel):
     url: str
 
 
+# ==================== Auto Update Schemas ====================
+
+class AutoUpdateConfigBase(BaseModel):
+    """Base auto-update config schema"""
+    enabled: bool = True
+    architectures: List[str] = Field(default_factory=list)
+    installer_types: List[str] = Field(default_factory=list)
+    max_versions: int = Field(default=1, ge=1, le=10)
+
+
+class AutoUpdateConfigCreate(AutoUpdateConfigBase):
+    """Auto-update config creation schema"""
+    package_id: int
+
+
+class AutoUpdateConfigUpdate(BaseModel):
+    """Auto-update config update schema"""
+    enabled: Optional[bool] = None
+    architectures: Optional[List[str]] = None
+    installer_types: Optional[List[str]] = None
+    max_versions: Optional[int] = Field(None, ge=1, le=10)
+
+
+class AutoUpdateConfigResponse(AutoUpdateConfigBase):
+    """Auto-update config response schema"""
+    id: int
+    package_id: int
+    last_sync_at: Optional[datetime] = None
+    last_sync_status: Optional[str] = None
+    last_sync_message: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class PackageWithAutoUpdate(PackageResponse):
+    """Package with auto-update config"""
+    auto_update_config: Optional[AutoUpdateConfigResponse] = None
+
+    model_config = {"from_attributes": True}
+
+
 # Update forward references
 PackageWithVersions.model_rebuild()
 VersionWithInstallers.model_rebuild()

@@ -1,34 +1,3 @@
 {
-  "packages": [
-    {
-      "package_identifier": "7zip.7zip",
-      "architectures": ["x64", "x86"],
-      "installer_types": ["exe", "msi"],
-      "max_versions": 3
-    },
-    {
-      "package_identifier": "VideoLAN.VLC",
-      "architectures": ["x64"],
-      "installer_types": ["exe", "msi"],
-      "max_versions": 2
-    },
-    {
-      "package_identifier": "Google.Chrome",
-      "architectures": ["x64"],
-      "installer_types": ["exe", "msi"],
-      "max_versions": 1
-    },
-    {
-      "package_identifier": "Mozilla.Firefox",
-      "architectures": ["x64"],
-      "installer_types": ["exe", "msi"],
-      "max_versions": 2
-    },
-    {
-      "package_identifier": "Microsoft.VisualStudioCode",
-      "architectures": ["x64"],
-      "installer_types": ["exe"],
-      "max_versions": 1
-    }
-  ]
+  "packages": []
 }
